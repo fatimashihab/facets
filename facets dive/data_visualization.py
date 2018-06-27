@@ -15,7 +15,7 @@ PRESETS = {
 
 #Set Data Environment
 CSV_FILE_PATH='https://raw.githubusercontent.com/fatimashihab/facets/master/100.csv'
-OUTPUT_FILE_PATH = './facets_dive_data_visualization.html'
+OUTPUT_FILE_PATH = './Data_Visualization.html'
 dataset = pd.read_csv(CSV_FILE_PATH)
 
 #Set the html template
