@@ -1,4 +1,4 @@
-# facets
+# Facets
 
 Facets is a Google AI tool that contains two visualizations for understanding and analyzing machine learning datasets: 
 - Facets Overview 
