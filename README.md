@@ -12,8 +12,11 @@ This repository is intended to hold a simple Python code that will initiate an i
 
 You can generate facets-dive html page throught the rdbms_main.py file through Bash:
 
-  python test1.py [(FIELD INPUT)...]
+  python test1.py FIELD INPUT
 
   Arguments:
+  
     FIELD    Search specified column from database
     INPUT    The query
+
+**NOTE: you may enter any number of FIELD-INPUT arguments
