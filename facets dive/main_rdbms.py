@@ -14,21 +14,8 @@ from docopt import docopt
 import json
 import pandas as pd
 import numpy as np
-
-
-def connect():
-    """ Connect to MySQL database """
-    try:
-        conn = mysql.connector.connect(host='localhost',
-                                       database='TEST',
-                                       user='root',
-                                       password='123')
-        if conn.is_connected():
-            #print('Connected to MySQL database')
-            return conn
-
-    except Error as e:
-        print(e)
+from sshtunnel import SSHTunnelForwarder
+import MySQLdb
 
 def search(conn, *args):
     """ Search Database"""
@@ -37,14 +24,15 @@ def search(conn, *args):
         cursor = conn.cursor()
         length = len(args)
         max = length
-#        print length
+        print length
+
         #change query with databaset settings
-        query = "SELECT * FROM TEST3 WHERE "
+        query = "SELECT * FROM fb_postal WHERE `"
         while length > 0:
             if max == length:
-                query = query + args[length - 2] + "= '" + args[length - 1] + "'"
+                query = query + args[length - 2] + "`= '" + args[length - 1] + "'"
             else:
-                query = query + "OR " + args[length - 2] + "= '" + args[length - 1] + "'"
+                query = query + "OR `" + args[length - 2] + "`= '" + args[length - 1] + "'"
             length-=2
 
         #customize result type
@@ -65,22 +53,27 @@ def search(conn, *args):
 
         #create dataframe
         data = np.array(list(r))
-        dataset = pd.DataFrame(data=data[:, :])
+        dataset = pd.DataFrame(data=data[:,:],columns=['ID' , 'Email' , 'Facebook' , 'Facebook Name if Different' , 'FB Gender M F U-Unknown',
+                                                    'First Name' , 'Last Name' , 'Address', 'City', 'State','Country', 'Zip', 'Phone', 'Phone1', 'Source',
+                                                   'Signup IP', 'Signup Date Added', 'Signup Time Added', 'Gender' , 'DOB' , 'Birthday',
+                                                    'ZCS_IP_DateTime' , 'ZCS_IP_AreaCode' , 'ZCS_IP_City', 'ZCS_IP_Continent', 'ZCS_IP_Country',
+                                                    'ZCS_IP_CountryCode', 'ZCS_ISP' , 'ZCS_ISP_Latitude', 'ZCS_ISP_Longitude', 'ZCS_ISP_Organization',
+                                                    'ZCS_ISP_State', 'ZCS_ISP_StateCode', 'src_id', 'TT_ID' , 'IW_SCORE'])
         cursor.close()
+        return dataset
+
     except Error as e:
         print(e)
-
-    return dataset
 
 def dive(dataset):
     # Facets Dive settings. Inital layout of the visualized data.
     PRESETS = {
-        u'verticalFacet': u'BUY_JEWELRY',
-        u'horizontalFacet': u'GENDER',
-        u'verticalBuckets': 1,
+        u'verticalFacet': u'Gender',
+        u'horizontalFacet': u'City',
+        u'verticalBuckets': 2,
         u'horizontalBuckets': 1,
-        u'colorBy': u'AGE',
-        u'imageFieldName': u'FN',
+        u'colorBy': u'Birthday',
+        u'imageFieldName': u'First Name',
     }
 
     # Set Data Environment
@@ -129,6 +122,7 @@ def dive(dataset):
         }
         f.write(final_template.encode('utf-8'))
 
+
 if __name__ == '__main__':
 
     #take input from bash and assign to variables
@@ -139,15 +133,15 @@ if __name__ == '__main__':
     zipped = sum(zipped,[])
 
     #connect to sql server
-    conn= connect()
+    with SSHTunnelForwarder(('xx.xxx.xx.xx', 22), ssh_password='', ssh_username='fatima',
+                            remote_bind_address=('127.0.0.3', 3306)) as server:
+        conn = MySQLdb.connect(host='127.0.0.1', port=server.local_bind_port, user='root', db='')
+        
+        #search the database
+        result= search(conn, *zipped)
+        conn.close()
+        
 
-    #search the database
-    result= search(conn, *zipped)
-    conn.close()
-    print result
 
-
-
-    #initialize dive settings
-    dive(result)
-
+        #initialize dive settings
+        dive(result)
